@@ -4,6 +4,7 @@ import random
 from pathlib import Path
 from torch.utils.data import Dataset
 import torchvision
+from natsort import natsorted
 from superpointprp.data.data_utils.kp_utils import warp_points_NeRF, compute_keypoint_map, filter_points
 from superpointprp.data.data_utils.photometric_augmentation import Photometric_aug
 from superpointprp.settings import DATA_PATH, EXPER_PATH
@@ -26,10 +27,10 @@ class NeRF(Dataset):
         List of images' path and names to be processed.
         """
         data_dir = Path(DATA_PATH, "NeRF", "images", self.action)
-        image_paths = list(data_dir.iterdir())
+        image_paths = natsorted(list(data_dir.iterdir()))
         if self.config["truncate"]:
             image_paths = image_paths[:int(self.config["truncate"]*len(image_paths))]
-        names = [p.stem for p in image_paths]
+        names = natsorted([p.stem for p in image_paths])
         image_paths = [str(p) for p in image_paths]
         files = {"image_paths":image_paths, "names":names}
 

@@ -31,7 +31,7 @@ def box_nms(prob, size, iou=0.1, min_prob=0.01, keep_top_k=0, remove_bord=False)
 
     if keep_top_k:
         k = min(scores.shape[0], keep_top_k)
-        scores, indices = torch.topk(scores, k)
+        scores, indices = torch.topk(scores, k, dim=0, sorted=True)
         pts = torch.index_select(pts, 0, indices) #pts[indices, :]
        
     
