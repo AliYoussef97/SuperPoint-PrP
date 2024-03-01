@@ -17,7 +17,7 @@ def get_loader(config, task, device="cpu", validate_training=False, export_split
                                            batch_size=batch_size,
                                            collate_fn=dataset["train"].batch_collator, 
                                            shuffle=True,
-                                           pin_memory=True, 
+                                           pin_memory=True,
                                            persistent_workers=True,
                                            num_workers=4),
                         "validation":None}
@@ -32,7 +32,7 @@ def get_loader(config, task, device="cpu", validate_training=False, export_split
                                                    shuffle=False,
                                                    pin_memory=True,
                                                    persistent_workers=True,
-                                                   num_workers=0)
+                                                   num_workers=4)
         
     if task == "test":
         dataset = {"test":getattr(data_script,class_name)(config["data"], task="test", device=device)}

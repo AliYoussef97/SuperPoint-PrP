@@ -15,7 +15,7 @@ def train_val(config, model,
               device="cpu"):
     
     print(f'\033[92m🚀 Training started for {config["model"]["model_name"].upper()} model on {config["data"]["class_name"]}\033[0m')
-
+    
     optimizer = torch.optim.Adam(model.parameters(), lr=config["train"]["learning_rate"])
 
     checkpoint_name = config["ckpt_name"]

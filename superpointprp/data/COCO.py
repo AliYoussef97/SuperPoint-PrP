@@ -4,7 +4,7 @@ from pathlib import Path
 from torch.utils.data import Dataset
 import torchvision
 import torchvision.transforms.functional as TF
-import kornia.geometry.transform as K
+from torchvision.transforms import Grayscale
 from superpointprp.data.data_utils.kp_utils import compute_keypoint_map
 from superpointprp.data.data_utils.photometric_augmentation import Photometric_aug
 from superpointprp.data.data_utils.homographic_augmentation import Homographic_aug
@@ -59,20 +59,22 @@ class COCO(Dataset):
 
     def read_image(self, image):
         image = torchvision.io.read_file(image)
-        image = torchvision.io.decode_image(image,torchvision.io.ImageReadMode.GRAY)
-        return image.squeeze(0).to(torch.float32).to(self.device)
+        image = torchvision.io.decode_image(image,torchvision.io.ImageReadMode.RGB)
+        return image.to(torch.float32)
     
     
     def ratio_preserving_resize(self, image):
         """
         Resize image while preserving the aspect ratio.
         """
-        target_size = torch.as_tensor(self.config["preprocessing"]["resize"], dtype=torch.int32)
-        scales = torch.divide(target_size, torch.as_tensor(image.shape, dtype=torch.float32))
-        new_size = (torch.as_tensor(image.shape[:2], dtype=torch.float32) * torch.max(scales)).to(torch.int32)
-        image = K.resize(image,size=[new_size[0], new_size[1]], interpolation='bilinear' ,align_corners=False)
-        image = TF.center_crop(image,output_size=[target_size[0].item(), target_size[1].item()])      
-        return image
+        image = Grayscale(num_output_channels=1)(image)
+        H, W = image.shape[-2:]
+        H_new, W_new = self.config["preprocessing"]["resize"] 
+        scales = torch.as_tensor([H_new/H, W_new/W], dtype=torch.float32)
+        new_size = (torch.as_tensor([H,W], dtype=torch.float32) * torch.max(scales)).to(torch.int32) 
+        image = TF.resize(image, size=[new_size[0], new_size[1]], interpolation=TF.InterpolationMode.BILINEAR, antialias=True)
+        image = TF.center_crop(image, output_size=[H_new, W_new])
+        return image.squeeze()
     
 
     def __getitem__(self, index):

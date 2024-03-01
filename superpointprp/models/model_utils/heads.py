@@ -38,7 +38,7 @@ class Detector_head(nn.Module):
             
             x_prob = torch.stack(x_prob) # (B,H*grid_size,W*grid_size)
             det_output.setdefault("prob_heatmap_nms", x_prob)
-
+        
         pred = torch.ge(x_prob,self.config["det_thresh"]).to(torch.int32) # (B,H*grid_size,W*grid_size)    
         det_output.setdefault("pred_pts", pred)
 
@@ -60,8 +60,8 @@ class Descriptor_head(nn.Module):
         
         x = self.convDa(x)
         desc_raw = self.convDb(x) # size -> (B, 256, Hc, Wc)
-        desc_output.setdefault("desc_raw", desc_raw)  
-
+        desc_output.setdefault("desc_raw", desc_raw)
+        
         if self.config["upsample"]:
 
             desc = nn.functional.interpolate(desc_raw, scale_factor=self.config["grid_size"], mode='bicubic', align_corners=False) #(B,256,H,W)

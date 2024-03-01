@@ -1,4 +1,4 @@
-# This code is from Superpoint[https://github.com/rpautrat/SuperPoint
+# This code is from Superpoint[https://github.com/rpautrat/SuperPoint]
 
 import collections
 

@@ -57,6 +57,6 @@ train:
     num_iters: 200000
     learning_rate: 0.001
 save_or_validation_interval: 1000
-ckpt_name: '' # name of checkpoint
+ckpt_name: '' # checkpoint name
 pretrained: False
 continue_training: False

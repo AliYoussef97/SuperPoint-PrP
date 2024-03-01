@@ -167,7 +167,7 @@ class ExportNeRFDetections():
                                      size=self.config["model"]["detector_head"]["nms"],
                                      min_prob=self.config["model"]["detector_head"]["det_thresh"],
                                      keep_top_k=self.config["model"]["detector_head"]["top_k"],
-                                     remove_bord=False) for pb in warped_output]
+                                     remove_bord=self.config["model"]["detector_head"]["remove_border"]) for pb in warped_output]
         
         warped_output_nms = torch.stack(warped_output_nms) # 1,H,W
         
@@ -194,7 +194,7 @@ class ExportNeRFDetections():
             
             if (int(unwarped_pt[0]) <= 1 or int(unwarped_pt[1]) <= 1 or int(unwarped_pt[0]) >= binary_heatmap.shape[0]-1 or int(unwarped_pt[1]) >= binary_heatmap.shape[1]-1 or 
                 int(warped_pt[0]) <= 1 or int(warped_pt[1]) <= 1 or int(warped_pt[0]) >= binary_heatmap.shape[0]-1 or int(warped_pt[1]) >= binary_heatmap.shape[1]-1):
-    
+
                 binary_heatmap[ int(unwarped_pt[0]),int(unwarped_pt[1])] = warped_output[int(warped_pt[0]),int(warped_pt[1])]
     
             else:
@@ -232,14 +232,14 @@ class ExportNeRFDetections():
                 input_rotation = data["raw"]["input_rotation"][j,...]
                 input_translation = data["raw"]["input_translation"][j,...]
                 input_intrinsics = data["camera_intrinsic_matrix"][j,...]
-
+                
                 probs = self.model(input_image)["detector_output"]["prob_heatmap"] # 1,H,W
-
+                
                 counts = torch.ones_like(probs,device=self.device) # 1,H,W
                 
                 probs = probs.unsqueeze(1) # 1,1,H,W
                 counts = counts.unsqueeze(1) # 1,1,H,W
-
+                
                 for k in other_index:
                     warped_image = data["raw"]["image"][k,...].unsqueeze(0)
                     warped_rotation = data["raw"]["input_rotation"][k,...]
@@ -263,13 +263,13 @@ class ExportNeRFDetections():
                              min_prob=self.config["model"]["detector_head"]["det_thresh"],
                              keep_top_k=self.config["model"]["detector_head"]["top_k"],
                              remove_bord=self.config["model"]["detector_head"]["remove_border"]) for pb in probs]
-            
+                
                 probs = torch.stack(probs) # 1,H,W
-            
+                
                 pred = torch.ge(probs,self.config["model"]["detector_head"]["det_thresh"]).to(torch.int32) # 1,H,W
-
+                
                 pred = torch.nonzero(pred.squeeze(0), as_tuple=False) # N,2
-
+                
                 pred = pred.cpu().numpy()
                 
                 np.save(save_path, pred)
