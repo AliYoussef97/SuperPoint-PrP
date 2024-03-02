@@ -81,7 +81,7 @@ class HPatches(Dataset):
     def preprocess(self, image):
         H, W = image.shape[-2:]
         size = self.get_resize_shape(H, W)
-        image = K.resize(image, size, side= self.config["resize_side"], interpolation='bilinear', align_corners=None)#, antialias=True)
+        image = K.resize(image, size, side= self.config["resize_side"], interpolation='bilinear', align_corners=None)
         scale = torch.Tensor([image.shape[-1] / W, image.shape[-2] / H]).to(torch.float32)
         T = np.diag([scale[0], scale[1], 1.0])
         return image, T

@@ -58,7 +58,7 @@ class Scannet(Dataset):
 
     def preprocess(self, image):
         H, W = image.shape[:2]
-        H_new, W_new = self.config["resize"] #self.get_resize_shape(H, W, self.config["resize"])
+        H_new, W_new = self.get_resize_shape(H, W, self.config["resize"])
         image = cv2.resize(image, (W_new, H_new))
         image = image.astype(np.float32) 
         scales = (float(W_new) / float(W), float(H_new) / float(H))
