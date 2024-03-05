@@ -17,7 +17,7 @@ model:
     detector_head: 
         detector_dim: [128,256]
         grid_size: 8
-        det_thresh: 0.005
+        det_thresh: 0.001
         nms: 4
         top_k: 1024
         remove_border: 8

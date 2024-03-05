@@ -8,7 +8,7 @@ data:
     epi_thrsehold: 0.0001
     shuffle: false
     max_length: -1
-    resize_float: true
+    batch_size: 1
 model:
     script: 'SuperPoint_PrP'
     class_name: 'SuperPointPrP'
@@ -17,7 +17,7 @@ model:
     detector_head: 
         detector_dim: [128,256]
         grid_size: 8
-        det_thresh: 0.005
+        det_thresh: 0.01
         nms: 3
         top_k: 2048
         remove_border: 8
