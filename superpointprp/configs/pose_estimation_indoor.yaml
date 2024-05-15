@@ -17,14 +17,15 @@ model:
     detector_head: 
         detector_dim: [128,256]
         grid_size: 8
-        det_thresh: 0.001
+        det_thresh: 0.005
         nms: 4
+        iou: 0.5
         top_k: 1024
-        remove_border: 8
+        remove_border: 4
     descriptor_head:
         descriptor_dim: [128,256]
         upsample: True
-        grid_size: 8
+        grid_size: 4
 matcher:
     ransac_thresh: 0.5
     cross_check: True

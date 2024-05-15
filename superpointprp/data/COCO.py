@@ -99,7 +99,7 @@ class COCO(Dataset):
         if self.config["has_labels"]: # Only for training/validaiton/test not exporting pseudo labels.
             points = self.samples["label_paths"][index]
             points = np.load(points)
-            points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
+            points = torch.as_tensor(points, dtype=torch.float32, device=self.device).reshape(-1,2)
             data["raw"]["kpts"] = points
             data["raw"]["kpts_heatmap"] = compute_keypoint_map(points, image.shape, self.device) # size=(H,W)
             data["raw"]["valid_mask"] = torch.ones_like(image,device=self.device,dtype=torch.int32) # size=(H,W)

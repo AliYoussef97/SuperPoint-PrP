@@ -164,7 +164,7 @@ class SyntheticShapes(Dataset):
         H,W = image.size()
         
         points = np.load(sample["point"]) # load points coordinates
-        points = torch.as_tensor(points, dtype=torch.float32,device=self.device) # coordinates=(y,x), convert to tensor
+        points = torch.as_tensor(points, dtype=torch.float32,device=self.device).reshape(-1,2) # coordinates=(y,x), convert to tensor
         
         kp_map = compute_keypoint_map(points, image.shape, device=self.device) # create keypoint map/mask where keypoints
                                                                                 # coordinates are 1 and the rest are 0
@@ -179,17 +179,13 @@ class SyntheticShapes(Dataset):
                         },
                 'homography': homography} # size = (3,3)
         
-        if (self.config["augmentation"]["photometric"]["enable_train"] and self.action[0] == "training" or
-            self.config["augmentation"]["photometric"]["enable_val"] and self.action[0] == "validation" or
-            self.config["augmentation"]["photometric"]["enable_test"] and self.action[0] == "test"):
+        if self.config["augmentation"]["photometric"]["enable"] and self.action[0] == "training":
             
             image = self.photometric_aug(data['raw']['image']) # size=(H,W), apply photometric augmentation
             data['raw']['image'] = torch.as_tensor(image, dtype=torch.float32,device=self.device) # size=(H,W) 
                        
         
-        if (self.config["augmentation"]["homographic"]["enable_train"] and self.action[0] == "training" or
-            self.config["augmentation"]["homographic"]["enable_val"] and self.action[0] == "validation" or 
-            self.config["augmentation"]["homographic"]["enable_test"] and self.action[0] == "test"):
+        if self.config["augmentation"]["homographic"]["enable"] and self.action[0] == "training":
             
             image = data['raw']['image'].view(1,1,H,W)
             keypoints = data['raw']['kpts']

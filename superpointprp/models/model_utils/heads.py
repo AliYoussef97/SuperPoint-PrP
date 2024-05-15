@@ -21,26 +21,24 @@ class Detector_head(nn.Module):
         x = self.convPa(x)
         logits = self.convPb(x) # raw output -> (B, grid_size**2+1, Hc, Wc)
         det_output.setdefault("logits", logits)
-
-        x_prob = self.softmax(logits) # probability -> (B, grid_size**2+1, Hc, Wc)
-        x_prob = x_prob[:,:-1,:,:] # Dustbin removal (B, grid_size**2+1, Hc, Wc) -> (B,grid_size**2, Hc, Wc)
-        x_prob = nn.functional.pixel_shuffle(x_prob, self.config["grid_size"]) # (B, grid_size**2, Hc, Wc) -> (B,1,H,W)
-        x_prob = x_prob.squeeze(1) # Remove channel dimension -> (B, H, W)
-        det_output.setdefault("prob_heatmap", x_prob)
-
+        
         if self.config["nms"]:
             
+            x_prob = self.softmax(logits) # probability -> (B, grid_size**2+1, Hc, Wc)
+            x_prob = x_prob[:,:-1,:,:] # Dustbin removal (B, grid_size**2+1, Hc, Wc) -> (B,grid_size**2, Hc, Wc)
+            x_prob = nn.functional.pixel_shuffle(x_prob, self.config["grid_size"]) # (B, grid_size**2, Hc, Wc) -> (B,1,H,W)
+            x_prob = x_prob.squeeze(1) # Remove channel dimension -> (B, H, W)
+            det_output.setdefault("prob_heatmap", x_prob)
+
             x_prob = [box_nms(prob=pb,
                               size=self.config["nms"],
                               min_prob=self.config["det_thresh"],
                               keep_top_k=self.config["top_k"],
+                              iou=self.config["iou"],
                               remove_bord=self.config["remove_border"]) for pb in x_prob]
             
             x_prob = torch.stack(x_prob) # (B,H*grid_size,W*grid_size)
             det_output.setdefault("prob_heatmap_nms", x_prob)
-        
-        pred = torch.ge(x_prob,self.config["det_thresh"]).to(torch.int32) # (B,H*grid_size,W*grid_size)    
-        det_output.setdefault("pred_pts", pred)
 
         return det_output
 
@@ -64,7 +62,10 @@ class Descriptor_head(nn.Module):
         
         if self.config["upsample"]:
 
-            desc = nn.functional.interpolate(desc_raw, scale_factor=self.config["grid_size"], mode='bicubic', align_corners=False) #(B,256,H,W)
+            desc_raw_norm = nn.functional.normalize(desc_raw, p=2, dim=1)
+            desc_output.setdefault("desc_raw_norm", desc_raw_norm)
+
+            desc = nn.functional.interpolate(desc_raw_norm, scale_factor=self.config["grid_size"], mode='bicubic', align_corners=False) #(B,256,H,W)
             desc = nn.functional.normalize(desc, p=2, dim=1) #(B,256,H,W)
             desc_output.setdefault("desc", desc)
 

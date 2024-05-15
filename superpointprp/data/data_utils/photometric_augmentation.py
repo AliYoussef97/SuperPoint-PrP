@@ -13,8 +13,8 @@ class Photometric_aug():
     def random_brightness(self, image, max_abs_change=75):
         delta = np.random.uniform(low=-max_abs_change,high=max_abs_change, size=1)[0]
         image = image + delta
-        image = np.clip(image, 0, 255.0)
-        return image.astype(np.float32)
+        image = np.clip(image, 0, 255)
+        return image
             
 
     def random_contrast(self, image, strength_range=(0.3, 1.8)):
@@ -23,8 +23,8 @@ class Photometric_aug():
                                             size=1)[0]
         mean = image.mean()
         image = (image-mean)*contrast_factor+mean
-        image = np.clip(image, 0, 255.)
-        return image.astype(np.float32)
+        image = np.clip(image, 0, 255)
+        return image
             
 
     def additive_gaussian_noise(self, image, stddev_range=(0, 15)):
@@ -66,7 +66,7 @@ class Photometric_aug():
             kernel *= gaussian
             kernel /= np.sum(kernel)
             img = cv2.filter2D(img, -1, kernel)
-            return img
+            return img.astype(np.float32)
 
         blurred = _py_motion_blur(image)
         res = np.reshape(blurred, image.shape)
@@ -94,7 +94,9 @@ class Photometric_aug():
             mask = cv2.GaussianBlur(mask.astype(np.float32), (kernel_size, kernel_size), 0)
             shaded = img * (1 - transparency * mask/255.)
             
-            return np.clip(shaded, 0, 255)
+            shaded = np.clip(shaded, 0, 255)
+
+            return shaded.astype(np.float32)
 
         shaded = _py_additive_shade(image)
         res = np.reshape(shaded, image.shape)
@@ -104,7 +106,7 @@ class Photometric_aug():
 
     def __call__(self, image):
         
-        image = image.cpu().numpy().astype(np.uint8)
+        image = image.cpu().numpy()
 
         indices = np.arange(len(self.primitives))
         np.random.shuffle(indices)

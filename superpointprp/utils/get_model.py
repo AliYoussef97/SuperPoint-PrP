@@ -1,7 +1,7 @@
 import importlib
 import torch.nn as nn
 
-def get_model(config,device="cpu"):
+def get_model(config, device="cpu"):
 
     script = config["script"] # Name of model script. e.g. SuperPoint.py
     class_name = config["class_name"] # Name of class in model script. e.g. SuperPoint class
@@ -30,8 +30,13 @@ def load_checkpoint(model: nn.Module,
         if k in model_state_dict.keys():
             model_state_dict[k] = v
     
-    model.load_state_dict(model_state_dict)
+    model.load_state_dict(model_state_dict, strict=True)
+
+    if eval:
+        for param in model.parameters():
+            param.requires_grad = False
+        model.eval()
     
     print(f'\033[92m✅ Loaded pretrained model \033[0m')
 
-    return model if not eval else model.eval()
+    return model

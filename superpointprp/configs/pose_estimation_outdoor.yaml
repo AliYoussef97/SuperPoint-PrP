@@ -2,8 +2,8 @@ data:
     name: 'YFCC'
     class_name: 'YFCC'
     gt_pairs: 'YFCC/raw_data/yfcc_test_pairs_with_gt.txt'
-    images_path:  YFCC/raw_data/yfcc100m 
-    resize: 1600
+    images_path:  'YFCC/yfcc100m'
+    resize: 1200
     n_thres: 0.0
     epi_thrsehold: 0.0001
     shuffle: false
@@ -17,10 +17,11 @@ model:
     detector_head: 
         detector_dim: [128,256]
         grid_size: 8
-        det_thresh: 0.01
+        det_thresh: 0.005
         nms: 3
         top_k: 2048
-        remove_border: 8
+        iou: 0.1
+        remove_border: 4
     descriptor_head:
         descriptor_dim: [128,256]
         upsample: True

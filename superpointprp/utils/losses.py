@@ -7,7 +7,7 @@ def detector_loss(logits,
                   kpts_heatmap,
                   valid_mask, 
                   grid_size=8, 
-                  include_mask=False,
+                  include_mask=True,
                   device="cpu"):
     
     labels = kpts_heatmap.unsqueeze(1).to(torch.float32) # (B,1,H,W)
@@ -41,10 +41,11 @@ def descriptor_loss(config,
                     warped_descriptors,
                     homographies,
                     valid_mask,
-                    include_mask=False,
+                    include_mask=True,
                     device="cpu"):
 
     grid_size = config["descriptor_head"]["grid_size"]
+    desc_dist = config["descriptor_head"]["desc_dist"]
     lambda_d = config["descriptor_head"]["lambda_d"]
     lambda_loss = config["descriptor_head"]["lambda_loss"]
     positive_margin = config["descriptor_head"]["positive_margin"]
@@ -69,7 +70,7 @@ def descriptor_loss(config,
 
     if normalise_descriptors:
 
-        s = (cell_distances<=(grid_size-0.5)).to(torch.float32) # (B,Hc,Wc,Hc,Wc)
+        s = (cell_distances<=(desc_dist-0.5)).to(torch.float32) # (B,Hc,Wc,Hc,Wc)
 
         descriptors = F.normalize(descriptors, p=2, dim=1)
         warped_descriptors = F.normalize(warped_descriptors, p=2, dim=1)
@@ -84,7 +85,7 @@ def descriptor_loss(config,
                                                  dim=1), [B, Hc, Wc, Hc, Wc])
 
     else:
-        s = (cell_distances<=(grid_size)).to(torch.float32) # (B,Hc,Wc,Hc,Wc)
+        s = (cell_distances<=(desc_dist)).to(torch.float32) # (B,Hc,Wc,Hc,Wc)
 
         desc_dot = torch.sum(descriptors * warped_descriptors, dim=1)
     
@@ -115,10 +116,11 @@ def descriptor_loss_NeRF(config,
                          descriptors,
                          warped_descriptors,
                          valid_mask,
-                         include_mask=False, 
+                         include_mask=True, 
                          device="cpu"):
 
     grid_size = config["descriptor_head"]["grid_size"]
+    desc_dist = config["descriptor_head"]["desc_dist"]
     lambda_d = config["descriptor_head"]["lambda_d"]
     lambda_loss = config["descriptor_head"]["lambda_loss"]
     positive_margin = config["descriptor_head"]["positive_margin"]
@@ -133,6 +135,7 @@ def descriptor_loss_NeRF(config,
     warped_coord_cells = warp_points_NeRF(coord_cells.reshape(-1,2),
                                           data["raw"]["input_depth"],
                                           data["camera_intrinsic_matrix"],
+                                          data["warped_camera_intrinsic_matrix"],
                                           data["raw"]["input_rotation"],
                                           data["raw"]["input_translation"],
                                           data["warp"]["warped_rotation"],
@@ -149,7 +152,7 @@ def descriptor_loss_NeRF(config,
     warped_descriptors = torch.reshape(warped_descriptors, [B, -1, 1, 1, Hc, Wc])
     
     if normalise_descriptors:
-        s = (cell_distances<=(grid_size-0.5)).to(torch.float32) # (B,Hc,Wc,Hc,Wc)
+        s = (cell_distances<=(desc_dist-0.5)).to(torch.float32) # (B,Hc,Wc,Hc,Wc)
 
         descriptors = F.normalize(descriptors, p=2, dim=1)
         warped_descriptors = F.normalize(warped_descriptors, p=2, dim=1)
@@ -165,7 +168,7 @@ def descriptor_loss_NeRF(config,
                                                     dim=1), [B, Hc, Wc, Hc, Wc])
 
     else:
-        s = (cell_distances<=(grid_size)).to(torch.float32) # (B,Hc,Wc,Hc,Wc)
+        s = (cell_distances<=(desc_dist)).to(torch.float32) # (B,Hc,Wc,Hc,Wc)
         desc_dot = torch.sum(descriptors * warped_descriptors, dim=1)
         # Use the following if running out of memory
         # desc_dot = torch.einsum("bcxyij,bcijkl->bxykl",descriptors,warped_descriptors)

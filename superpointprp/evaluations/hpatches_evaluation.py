@@ -23,10 +23,10 @@ def estimate_hpatches_metrics(config, model, data_loader, device):
 
         warped_output = model(batch['warped_image'])
 
-        logits_0, desc_0 = output["prob_heatmap_nms"], output["desc"]
+        logits_0, desc_0 = output["detector_output"]["prob_heatmap_nms"], output["descriptor_output"]["desc"]
 
-        logits_1, desc_1 = warped_output["prob_heatmap_nms"], warped_output["desc"]
-
+        logits_1, desc_1 = warped_output["detector_output"]["prob_heatmap_nms"], warped_output["descriptor_output"]["desc"]
+        
         m_output = matcher(desc_0, 
                            desc_1,
                            logits_0,

@@ -49,6 +49,7 @@ model:
         detector_dim: [128,256]
         grid_size: 8
         nms: False
+        iou: 0.1
         det_thresh: 0.005
         top_k: False
         remove_border: False
@@ -57,5 +58,5 @@ train:
     learning_rate: 0.001
 save_or_validation_interval: 1000
 ckpt_name: '' # name of checkpoint
-pretrained: '' # checkpoint_folder/checkpoint_name_iter.pth
+pretrained: False
 continue_training: False

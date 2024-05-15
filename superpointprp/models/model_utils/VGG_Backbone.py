@@ -11,7 +11,7 @@ class VGG_Block(nn.Module):
         self.conv2d = nn.Conv2d(input_dim, output_dim, kernel_size=kn_size, stride=1, padding=pad)
         
         if batch_norm:
-            self.norm = nn.BatchNorm2d(output_dim)
+            self.norm = nn.BatchNorm2d(output_dim, eps=0.001)
         
         if activation:
             self.relu = nn.ReLU(inplace=True)

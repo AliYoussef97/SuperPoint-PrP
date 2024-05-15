@@ -4,9 +4,11 @@ import random
 from pathlib import Path
 from torch.utils.data import Dataset
 import torchvision
+from torchvision.transforms import Grayscale
 from natsort import natsorted
 from superpointprp.data.data_utils.kp_utils import warp_points_NeRF, compute_keypoint_map, filter_points
 from superpointprp.data.data_utils.photometric_augmentation import Photometric_aug
+from superpointprp.data.data_utils.NeRF_augmentation import NeRF_aug
 from superpointprp.settings import DATA_PATH, EXPER_PATH
 
 
@@ -21,6 +23,9 @@ class NeRF(Dataset):
         
         if self.config["augmentation"]["photometric"]["enable"]:
             self.photometric_aug = Photometric_aug(self.config["augmentation"]["photometric"])
+        
+        if self.config["augmentation"]["homographic"]["enable"]:
+            self.homographic_aug = NeRF_aug(self.config["augmentation"]["homographic"])
 
     def _init_dataset(self):
         """
@@ -132,8 +137,9 @@ class NeRF(Dataset):
     
     def read_image(self, image):
         image = torchvision.io.read_file(image)
-        image = torchvision.io.decode_image(image,torchvision.io.ImageReadMode.GRAY)
-        return image.squeeze(0).to(torch.float32).to(self.device)
+        image = torchvision.io.decode_image(image,torchvision.io.ImageReadMode.RGB)
+        image = Grayscale(num_output_channels=1)(image)
+        return image.squeeze().to(torch.float32)
     
     def remove_numbers_from_string(self, s: str) -> tuple:
         name = ''.join([i for i in s if not i.isdigit()])
@@ -187,6 +193,18 @@ class NeRF(Dataset):
 
             warped_transformation = np.load(self.samples["camera_transform_paths"][random_frame_idx])
             warped_transformation = self.axis_transform(warped_transformation)
+
+            warped_intrinsics = self.camera_intrinsic_matrix
+            data["warped_camera_intrinsic_matrix"] = warped_intrinsics
+            
+            if self.config["augmentation"]["homographic"]["enable"]:
+                prob_h = np.random.rand()
+                if prob_h < self.config["augmentation"]["homographic"]["p"]:
+                    # Homographic Augmentation
+                    warped_image, warped_transformation, scale, mask_aug = self.homographic_aug(warped_image, warped_transformation)
+                    warped_intrinsics_aug = torch.matmul(warped_intrinsics, scale)
+                    data["warped_camera_intrinsic_matrix"] = warped_intrinsics_aug
+            
             warped_rotation, warped_translation = self.get_rotation_translation(warped_transformation)
 
             data["warp"] = {"image":warped_image,
@@ -198,6 +216,7 @@ class NeRF(Dataset):
             warped_points = warp_points_NeRF(data["raw"]["kpts"],
                                              data["raw"]["input_depth"].unsqueeze(0),
                                              data["camera_intrinsic_matrix"].unsqueeze(0),
+                                             data["warped_camera_intrinsic_matrix"].unsqueeze(0),
                                              data["raw"]["input_rotation"].unsqueeze(0),
                                              data["raw"]["input_translation"].unsqueeze(0),
                                              data["warp"]["warped_rotation"].unsqueeze(0),
@@ -206,9 +225,17 @@ class NeRF(Dataset):
             
             warped_points = filter_points(warped_points, warped_image.shape, self.device)
             
-            data["warp"]["kpts"] = warped_points
-            data["warp"]["kpts_heatmap"] = compute_keypoint_map(warped_points, image.shape, self.device) # size=(H,W)
-            data["warp"]["valid_mask"] = torch.ones_like(image, device=self.device, dtype=torch.int32) # size=(H,W)
+            if self.config["augmentation"]["homographic"]["enable"] and prob_h < self.config["augmentation"]["homographic"]["p"]:
+                indices = warped_points.to(torch.int32)
+                valid_mask = mask_aug[indices[:, 0], indices[:, 1]] != 0
+                warped_points = warped_points[valid_mask]
+                data["warp"]["kpts"] = warped_points
+                data["warp"]["kpts_heatmap"] = compute_keypoint_map(warped_points, image.shape, self.device)
+                data["warp"]["valid_mask"] = mask_aug
+            else:
+                data["warp"]["kpts"] = warped_points
+                data["warp"]["kpts_heatmap"] = compute_keypoint_map(warped_points, image.shape, self.device) # size=(H,W)
+                data["warp"]["valid_mask"] = torch.ones_like(image, device=self.device, dtype=torch.int32) # size=(H,W)
             
             if self.action == "training" and self.config["augmentation"]["photometric"]["enable"]:
                 data["warp"]["image"] = self.photometric_aug(data["warp"]["image"])
@@ -284,6 +311,10 @@ class NeRF(Dataset):
                               "kpts":warped_points, # size=(N,2)
                               "kpts_heatmap":warped_kp_heatmap, # size=(batch_size,H,W)
                               "valid_mask":warped_valid_mask}
+            
+            warped_intrinsic_matrix = torch.stack([item['warped_camera_intrinsic_matrix'] for item in batch]) # size=(batch_size,3,3)
+            
+            output["warped_camera_intrinsic_matrix"] = warped_intrinsic_matrix # size=(batch_size,3,3)
             
             output["warped_name"] = warped_names
         

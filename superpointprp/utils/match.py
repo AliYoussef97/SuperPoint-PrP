@@ -37,7 +37,7 @@ def match(desc_0: torch.Tensor,
         matches: (N, 2) torch.Tensor
         confidence: (N, 1) torch.Tensor
     """    
-    distance = distance = 1 - torch.matmul(desc_0, desc_1.T)
+    distance = 1 - torch.matmul(desc_0, desc_1.T)
     
     matches = match_nn_double(distance, cross_check)
 
@@ -83,10 +83,10 @@ def matcher(desc_0: torch.Tensor,
     logits_0, logits_1 = logits_0.squeeze(), logits_1.squeeze()
 
     desc_0, desc_1 = desc_0.squeeze(0), desc_1.squeeze(0)
-
-    kpts_0, kpts_1 = torch.nonzero(logits_0 > 0.0, as_tuple=False).long() , torch.nonzero(logits_1 > 0.0, as_tuple=False).long()
-        
-    sparse_desc_0, sparse_desc_1 = desc_0[:, kpts_0[:, 0], kpts_0[:, 1]].T, desc_1[:, kpts_1[:, 0], kpts_1[:, 1]].T
+    
+    kpts_0, kpts_1 = torch.nonzero(logits_0 > 0.0, as_tuple=False), torch.nonzero(logits_1 > 0.0, as_tuple=False)
+    
+    sparse_desc_0, sparse_desc_1 = desc_0[:, kpts_0[:, 0].long(), kpts_0[:, 1].long()].T, desc_1[:, kpts_1[:, 0].long(), kpts_1[:, 1].long()].T
     
     matches, confidence = match(sparse_desc_0, sparse_desc_1, cross_check)
     

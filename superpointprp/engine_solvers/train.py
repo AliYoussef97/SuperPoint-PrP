@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 def train_val(config, model, 
               train_loader, validation_loader=None,
-              mask_loss=False, iteration=0,
+              mask_loss=True, iteration=0,
               optimizer_state_dict=None, nerf_desc_loss=False,
               device="cpu"):
     

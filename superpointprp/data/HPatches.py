@@ -16,16 +16,27 @@ class HPatches(Dataset):
         self.samples = self._init_dataset()
     
     def _init_dataset(self):
-
+        ignored_scenes = (
+                "i_contruction",
+                "i_crownnight",
+                "i_dc",
+                "i_pencils",
+                "i_whitebuilding",
+                "v_artisans",
+                "v_astronautis",
+                "v_talent",
+            )
         data_dir = Path(DATA_PATH, self.config["name"])
         folder_dirs = [x for x in data_dir.iterdir() if x.is_dir()]
-
+        
         image_paths = []
         warped_image_paths = []
         homographies = []
         names = []
 
         for folder_dir in folder_dirs:
+            if (folder_dir.stem in ignored_scenes) and self.config["ignore_scenes"]:
+                continue
             if self.config["alteration"] == 'i' != folder_dir.stem[0] != 'i':
                 continue
             if self.config["alteration"] == 'v' != folder_dir.stem[0] != 'v':

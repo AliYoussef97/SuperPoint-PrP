@@ -9,6 +9,14 @@ data:
     augmentation:
         photometric:
             enable: False
+        homographic:
+            enable: False
+            p: 0.75
+            scale:
+                min: 0.6
+                max: 1.4
+            rotation:
+                angle: 120
     batch_size: 20
     truncate: False
 model:
@@ -21,6 +29,7 @@ model:
         grid_size: 8
         nms: 4
         det_thresh: 0.015
+        iou: 0.1
         top_k: False
-        remove_border: False
+        remove_border: 3
 pretrained: '' # checkpoint_folder/checkpoint_name_iter.pth

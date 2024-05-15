@@ -52,20 +52,22 @@ model:
         nms: False
         det_thresh: 0.005
         top_k: False
+        iou: 0.1
         remove_border: False
     descriptor_head:
         descriptor_dim: [128,256]
         upsample: False
         grid_size: 8
+        desc_dist: 8
         positive_margin: 1.0
         negative_margin: 0.2
-        lambda_d: 250
-        lambda_loss: 0.0001
-        normalise_descriptors: False
+        lambda_d: 0.05
+        lambda_loss: 10000
+        normalise_descriptors: True
 train:
     num_iters: 300000
-    learning_rate: 0.001
-save_or_validation_interval: 5000
+    learning_rate: 0.0001
+save_or_validation_interval: 10000
 ckpt_name: '' # checkpoint name
-pretrained: '' # checkpoint_folder/checkpoint_name_iter.pth
+pretrained: False
 continue_training: False

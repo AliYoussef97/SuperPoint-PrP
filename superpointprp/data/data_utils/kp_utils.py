@@ -65,6 +65,7 @@ def warp_points(points, homography, device='cpu'):
 def warp_points_NeRF(points: torch.Tensor,
                      depth: torch.Tensor,
                      cam_intrinsic_matrix: torch.Tensor,
+                     warped_cam_intrinsic_matrix: torch.Tensor,
                      input_rotation: torch.Tensor,
                      input_translation: torch.Tensor, 
                      warp_rotation: torch.Tensor,
@@ -76,6 +77,7 @@ def warp_points_NeRF(points: torch.Tensor,
         - points: (N, 2) tensor
         - depth: (B, H, W) tensor
         - cam_intrinsic_matrix: (B, 3, 3) tensor
+        - warped_cam_intrinsic_matrix: (B, 3, 3) tensor
         - input_rotation: (B, 3, 3) tensor
         - input_translation: (B, 3, 1) tensor
         - warp_rotation: (B, 3, 3) tensor
@@ -132,7 +134,7 @@ def warp_points_NeRF(points: torch.Tensor,
     warped_points *= depth_values
     warped_points = input_rotation @ warped_points + input_translation    
     warped_points = torch.linalg.inv(warp_rotation) @ warped_points - (torch.linalg.inv(warp_rotation) @ warp_translation)
-    warped_points = cam_intrinsic_matrix @ warped_points
+    warped_points = warped_cam_intrinsic_matrix @ warped_points
 
     warped_points = warped_points.transpose(2, 1)
     warped_points = warped_points[:,:, :2] / warped_points[:,:, 2:]

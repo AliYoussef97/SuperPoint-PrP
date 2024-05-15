@@ -159,7 +159,8 @@ class ExportNeRFDetections():
              warped_rotation,
              warped_translation,
              warped_depth,
-             input_intrinsics):
+             input_intrinsics,
+             warped_intrinsic):
 
         warped_output = self.model(warped_image)["detector_output"]["prob_heatmap"]# 1,H,W
         
@@ -179,6 +180,7 @@ class ExportNeRFDetections():
 
         unwarped_pts = warp_points_NeRF(warped_pts,
                                         warped_depth.unsqueeze(0),
+                                        warped_intrinsic.unsqueeze(0),
                                         input_intrinsics.unsqueeze(0),
                                         warped_rotation.unsqueeze(0),
                                         warped_translation.unsqueeze(0),
@@ -245,6 +247,8 @@ class ExportNeRFDetections():
                     warped_rotation = data["raw"]["input_rotation"][k,...]
                     warped_translation = data["raw"]["input_translation"][k,...]
                     warped_depth = data["raw"]["input_depth"][k,...]
+                    warped_intrinsic = data["camera_intrinsic_matrix"][k,...]
+                    
                     probs, counts = self.step(warped_image,
                                               probs,
                                               counts,
@@ -253,7 +257,8 @@ class ExportNeRFDetections():
                                               warped_rotation,
                                               warped_translation,
                                               warped_depth,
-                                              input_intrinsics)
+                                              input_intrinsics,
+                                              warped_intrinsic)
                 
                 counts = torch.sum(counts, dim=1) # 1,H,W
                 probs = torch.sum(probs, dim=1) / counts # 1,H,W

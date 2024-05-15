@@ -14,7 +14,7 @@ def estimate_pose_errors(config, model, data_loader, device):
     for batch in tqdm(data_loader):
         
         batch = {k: v.to(device) if isinstance(v, torch.Tensor) else v for k, v in batch.items()}
-
+        
         output = model(batch['inp0'])
 
         warped_output = model(batch['inp1'])
@@ -34,7 +34,7 @@ def estimate_pose_errors(config, model, data_loader, device):
         num_correct = np.sum(correct)
         precision = np.mean(correct) if len(correct) > 0 else 0
         matching_score = num_correct / len(m_output["kpts_0"]) if len(m_output["kpts_0"]) > 0 else 0
-
+        
         ret = estimate_pose(m_output["m_kpts_0"], m_output["m_kpts_1"], batch['K0'], batch['K1'], config["matcher"]["ransac_thresh"])
         if ret is None:
             err_t, err_R = np.inf, np.inf

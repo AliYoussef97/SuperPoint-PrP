@@ -52,11 +52,12 @@ model:
         nms: False
         det_thresh: 0.005
         top_k: False
+        iou: 0.1
         remove_border: False
 train:
     num_iters: 200000
     learning_rate: 0.001
-save_or_validation_interval: 1000
+save_or_validation_interval: 5000
 ckpt_name: '' # checkpoint name
 pretrained: False
 continue_training: False
