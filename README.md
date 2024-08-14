@@ -86,4 +86,4 @@ python engine.py --config_path .\configs\YFCC_pose.yaml --task pose_evaluation
 ## Credits
 
 Special thanks to Daniel DeTone, Tomasz Malisiewicz, Andrew Rabinovich
- the authors of [SuperPoint](https://arxiv.org/abs/1712.07629), Rémi Pautrat for the [Tensorflow implementation](https://github.com/rpautrat/SuperPoint) and the authors of Superpoint [GlueFactory's implementation](https://github.com/cvg/glue-factory).
+ the authors of [SuperPoint](https://arxiv.org/abs/1712.07629), Rémi Pautrat for the [Tensorflow implementation](https://github.com/rpautrat/SuperPoint) and the authors of Superpoint's [GlueFactory implementation](https://github.com/cvg/glue-factory).
